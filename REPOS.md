@@ -4,5 +4,7 @@
 |------|------|
 | **le-crypto-app-store-overview** (this) | Marketing |
 | **le-crypto-app-store** | Backend code |
-| **le-crypto-app-store-plugin** | WordPress plugins |
-| **le-crypto-app-store-plugin-overview** | Plugin marketing |
+| **le-shop** | Catalogue plugin |
+| **le-shop-overview** | le-shop marketing |
+| **le-settings** | Site settings plugin (not the store backend) |
+| **le-settings-overview** | le-settings marketing |
