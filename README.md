@@ -22,10 +22,10 @@ Telegram Mini App shop for LogicEncoder digital tools: browse apps, pay with ERC
 |------|----------|
 | [le-crypto-app-store](https://github.com/logicencoder/le-crypto-app-store) | Backend source (Fastify + DuckDB) |
 | **This repo** | Public overview |
-| [le-shop](https://github.com/logicencoder/le-shop) | WordPress catalogue plugin |
-| [le-shop-overview](https://github.com/logicencoder/le-shop-overview) | le-shop marketing |
-| [le-settings](https://github.com/logicencoder/le-settings) | Site settings plugin (separate) |
-| [le-settings-overview](https://github.com/logicencoder/le-settings-overview) | le-settings marketing |
+| [le-shop-plugin](https://github.com/logicencoder/le-shop-plugin) | WordPress catalogue plugin (private) |
+| [le-shop-plugin-overview](https://github.com/logicencoder/le-shop-plugin-overview) | le-shop marketing |
+| [le-settings-plugin](https://github.com/logicencoder/le-settings-plugin) | Site settings plugin (private) |
+| [le-settings-plugin-overview](https://github.com/logicencoder/le-settings-plugin-overview) | le-settings marketing |
 
 Implementation details: [`ARCHITECTURE.md`](https://github.com/logicencoder/le-crypto-app-store/blob/main/ARCHITECTURE.md) in the code repo.
 
