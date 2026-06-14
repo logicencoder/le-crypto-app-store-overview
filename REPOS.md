@@ -1,10 +1,7 @@
-# Crypto App Store — repositories
+# Related repositories
 
-| Repo | Role |
-|------|------|
-| **le-crypto-app-store-overview** (this) | Marketing |
-| **le-crypto-app-store** | Backend code |
-| **le-shop-plugin** | Catalogue plugin (private) |
-| **le-shop-plugin-overview** | le-shop marketing |
-| **le-settings-plugin** | Site settings plugin (private) |
-| **le-settings-plugin-overview** | le-settings marketing |
+| Repository | Visibility | Role |
+|------------|------------|------|
+| [le-crypto-app-store](https://github.com/logicencoder/le-crypto-app-store) | private | Fastify backend, payments, delivery, admin UI |
+| [le-crypto-app-store-overview](https://github.com/logicencoder/le-crypto-app-store-overview) | public | Product description (this repo) |
+| [le-shop-plugin-overview](https://github.com/logicencoder/le-shop-plugin-overview) | public | WordPress catalogue (pair — rewrite later) |
