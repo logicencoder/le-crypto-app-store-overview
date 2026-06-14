@@ -1,130 +1,52 @@
-# Logic Encoder Crypto App Store — public overview
+# Logic Encoder Crypto App Store
 
-Telegram-first software shop for LogicEncoder: discover tools, pay with cryptocurrency, receive files automatically — with a WordPress-backed catalogue on [logicencoder.com](https://logicencoder.com).
+Telegram-first software shop: browse Logic Encoder tools, pay with **USDC or ETH**, receive zip files automatically. Product copy lives in **WordPress**; checkout, chain matching, and delivery run in a dedicated **Node/Fastify** backend.
 
-**Implementation (private):** [le-crypto-app-store](https://github.com/logicencoder/le-crypto-app-store)
+Private source: [logicencoder/le-crypto-app-store](https://github.com/logicencoder/le-crypto-app-store). Catalogue plugin: [le-shop-plugin](https://github.com/logicencoder/le-shop-plugin) (private).
 
----
+## The problem it solves
 
-## The problem
+Crypto-native buyers do not want card checkout or multi-page WooCommerce flows inside Telegram. Operators still want to edit app descriptions in WordPress without redeploying Node on every price change.
 
-Selling small digital tools to a crypto-native audience has friction:
+This system splits roles: **WordPress = catalogue**, **Node service = money + files + bot**.
 
-- Card processors and traditional checkout are a poor fit.  
-- Buyers want to pay from a wallet inside Telegram, not a multi-page WooCommerce flow.  
-- Exact payment amounts must be unique so the server knows **which** order was paid without trusting a memo field.  
-- Operators still want to edit product copy in **WordPress**, not redeploy Node on every price change.
+## Telegram Mini App storefront
 
-This system splits responsibilities: **WordPress = catalogue**, **Node service = money + files + bot**.
+Full-screen shop UI embedded in Telegram — product cards (price, badge, version), basket, wallet payment flow, and order status polling. Mobile-first WebApp UX instead of forcing desktop checkout.
 
----
+## Unique payment amounts
 
-## Who benefits
+Each checkout session generates a slightly unique ERC20 amount (derived from a session hash) so incoming transfers map to exactly one open order on a shared deposit address — no reliance on user-entered memo fields.
 
-| Audience | Outcome |
-|----------|---------|
-| **Buyer** | Opens Mini App, sees live apps, pays USDC/ETH, receives zips in Telegram or via time-limited download link |
-| **Operator** | Edits apps in wp-admin; monitors orders, warehouse disk status, and wallet activity in admin dashboard |
-| **Public site visitor** | Reads application pages on logicencoder.com (fed by same catalogue metadata) |
+## On-chain confirmation and delivery
 
----
+The service listens for USDC/USDT `Transfer` events and native ETH payments, waits for confirmations, then marks orders paid. After payment, the bot sends purchased zips to the buyer’s Telegram chat with duplicate-delivery guards. Orders in `PENDING` expire after ~15 minutes; late payments surface admin alerts instead of silent mismatches.
 
-## Ecosystem (do not merge with other plugins)
+## Web checkout path
 
-| Component | Role |
-|-----------|------|
-| **le-crypto-app-store** | This overview — checkout, chain matching, delivery |
-| **le-shop-plugin** | WordPress catalogue + webhook when products change |
-| **le-settings-plugin** | Site security/SEO — unrelated to payments |
+Buyers without a Telegram chat ID can receive **limited-use HTTPS download tokens** after payment — hybrid flows where marketing pages point to a web session instead of bot-only checkout.
 
----
+## WordPress catalogue sync
 
-## Capabilities (detailed)
+When an operator publishes an application in WordPress, a webhook notifies the backend; admin can also bulk sync from REST. Marketing site and shop share one catalogue without duplicate data entry in Node.
 
-### Telegram Mini App storefront
+## Operator admin dashboard
 
-**What:** Full-screen shop UI served at `/` on the backend URL, embedded in Telegram. Shows product cards (price, badge, version), basket, payment QR / wallet flow, order status polling.
+Browser UI at `/admin`: live orders, stats, warehouse editor, missing-file flags, wallet send tool, database inspection, runtime toggles, and WebSocket live feed. DuckDB stores basket lines and audit entries for funnel analysis.
 
-**Why:** Meets users where they already are (Telegram) with native WebApp UX instead of forcing a desktop checkout.
+## Order lifecycle
 
-**Who benefits:** Mobile-first buyers; higher conversion for small impulse-priced tools.
+```
+PENDING (~15 min TTL)
+   ├─▶ PAYING (tx seen, confirming)
+   ├─▶ PAID
+   │     └─▶ DELIVERED (Telegram files / download tokens)
+```
 
-### Unique payment amounts (anti-collision)
+Stack: **Fastify 5**, **DuckDB** (`analytics.db`), **Telegraf**, **ethers v6**, merged ERC20 + ETH watchdog in one process.
 
-**What:** Each checkout session generates a slightly unique ERC20 amount (derived from a session hash) so incoming transfers map to exactly one open order.
-
-**Why:** Shared deposit addresses cannot rely on user-entered order IDs in chain transfers; amount fingerprinting is the reconciliation key.
-
-**Who benefits:** Operator automation; buyers only send one precise number.
-
-### Automatic on-chain confirmation
-
-**What:** Service listens for `Transfer` events (USDC/USDT) and native ETH payments, waits N confirmations, then marks order paid.
-
-**Why:** Manual tx checking does not scale and adds hours of delay.
-
-**Who benefits:** Buyers get files in minutes; operator sleeps.
-
-### Timed checkout expiry
-
-**What:** Orders in `PENDING` expire after ~15 minutes; late payments trigger admin Telegram alerts instead of silent wrong deliveries.
-
-**Why:** Prevents old quotes being paid after price changes; surfaces accounting edge cases.
-
-**Who benefits:** Operator accounting integrity; buyers prompted to start a fresh checkout.
-
-### Automatic file delivery
-
-**What:** After payment, bot sends each purchased zip to the buyer’s Telegram chat; tracks deliveries to avoid duplicates on retry.
-
-**Why:** Buyer paid for automation — manual email delivery would defeat the product.
-
-**Who benefits:** Buyer instant gratification; operator not in the loop per sale.
-
-### Web checkout path (download tokens)
-
-**What:** For buyers without Telegram chat id, system issues limited-use HTTPS download tokens after delivery.
-
-**Why:** Supports hybrid flows where marketing page points to web session instead of bot-only.
-
-**Who benefits:** Buyers who start on web but still pay on-chain.
-
-### WordPress catalogue sync
-
-**What:** When operator publishes an application in WordPress, webhook notifies backend; admin can also bulk `sync-from-wp` from REST.
-
-**Why:** Marketing site and shop stay one catalogue without duplicate data entry in Node.
-
-**Who benefits:** Operator editorial workflow unchanged.
-
-### Operator admin dashboard
-
-**What:** Browser UI at `/admin`: live orders, stats, warehouse editor, disk missing flags, wallet send tool, DB inspection, runtime toggles, WebSocket live feed.
-
-**Why:** Production operations (refunds, missing zip uploads, stuck orders) need a control plane beyond Telegram alerts.
-
-**Who benefits:** Operator and support during incidents.
-
-### Analytics logging
-
-**What:** Basket lines and audit entries stored in DuckDB for later reporting.
-
-**Why:** Understand what users attempt to buy and where funnel drops.
-
-**Who benefits:** Operator improving catalogue and pricing.
+See [REPOS.md](REPOS.md) for related repos.
 
 ---
 
-## Live operation note
-
-Runtime runs on private infrastructure (SOL) exposed via secure tunnel to Telegram and WordPress — specifics are in the private repo, not here.
-
----
-
-## Related repositories
-
-[REPOS.md](REPOS.md)
-
----
-
-**Made by [logicencoder](https://github.com/logicencoder)**
+**Made by [Logic Encoder](https://logicencoder.com)** · [GitHub](https://github.com/logicencoder) · [Contact](https://logicencoder.com/contact/)
