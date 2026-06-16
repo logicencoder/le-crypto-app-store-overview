@@ -127,20 +127,238 @@ Every transition is written to the **audit log** and broadcast on the admin WebS
 
 ---
 
-## Operator Telegram alerts
+## Telegram bot notifications — complete reference
 
-The bot notifies the operator chat (`ADMIN_CHAT_ID`) in parallel with dashboard updates:
+The Telegraf bot runs inside the same Node process as checkout and the chain watcher. Every important event sends a **Markdown** message to one or two chats:
 
-| Event | Telegram message |
-|-------|------------------|
-| New checkout | `🛒 NEW ORDER` — user, items, USD total, exact token amount, device, 15 min expiry |
-| Payment detected | Transfer spotted — order moving to confirmations |
-| Delivered | `✅ DELIVERED` — order ID, file count, buyer, amount |
-| Paid, no files | `⚠️ PAID – NO FILES` — manual intervention needed |
-| Expired late payment | `⏰ EXPIRED` — TXID arrived after window |
-| Payment failed on-chain | Failed receipt notification |
+| Chat | Config | Who receives it |
+|------|--------|-----------------|
+| **Operator** | `ADMIN_CHAT_ID` in `.env` | Shop owner / team — sales awareness and incident alerts |
+| **Buyer** | `buyer_chat_id` on the order (Telegram `user.id`) | Customer who checked out in the Mini App |
 
-Routine sales complete without operator action. Alerts are **awareness**, not a manual delivery step.
+**Web browser orders** have no Telegram buyer chat — delivery happens via download links in the shop UI instead. Operator alerts still fire for web sales.
+
+All operator messages also appear in the **admin dashboard** (Orders tab, Logs terminal, Chain tab) via WebSocket — Telegram is a parallel channel, not the only view.
+
+Routine USDC/ETH sales need **zero operator replies**. Messages are informational unless they say *Manual action needed* or *Manual delivery needed*.
+
+---
+
+### Operator alerts — happy path (automatic sale)
+
+#### 1. New order — checkout created
+
+**When:** buyer taps Checkout; `POST /test-data` succeeds; order status `PENDING`.
+
+**Message includes:**
+- Order ID
+- Buyer `@username` and Telegram user ID
+- Line items: name, USD price, file ID per item
+- Total USD
+- Exact payment amount: USDC (display + raw units + contract address) **or** ETH (display + wei)
+- Device platform and screen size from Mini App
+- `Expires: 15 min | Status: PENDING`
+
+**Operator action:** none — wait for chain watcher. Optional: watch the same order appear live in dashboard Orders tab.
+
+---
+
+#### 2. Payment detected — USDC (ERC-20)
+
+**When:** watcher matches an incoming USDC `Transfer` to a pending order (correct `amount_wei`, not expired).
+
+**Message includes:**
+- Order ID
+- Token amount in human-readable USDC + symbol
+- Buyer `@username`
+- `Waiting N confirmations...` (N = runtime `block_confirmations`)
+
+**Operator action:** none — confirmations and delivery are automatic.
+
+---
+
+#### 3. Payment detected — ETH
+
+**When:** watcher matches native ETH transfer to pending ETH order.
+
+**Message includes:** same pattern as USDC but with ETH amount and `ETH PAYMENT DETECTED` header.
+
+**Operator action:** none.
+
+---
+
+#### 4. Delivered — files sent successfully
+
+**When:** after N block confirmations, receipt status `0x1`, `deliverFiles()` sent at least one ZIP to buyer (or web tokens generated).
+
+**Message includes:**
+- `DELIVERED`
+- Order ID
+- `X/Y files` delivered count
+- Buyer `@username`
+- Amount paid (USDC or ETH label)
+
+**Operator action:** none — sale complete. Same event updates Orders tab to Done and stats strip revenue.
+
+---
+
+### Operator alerts — incidents (may need human action)
+
+#### 5. Paid — no files on disk
+
+**When:** payment confirmed but zero files could be delivered (all ZIPs missing, integrity failed, or too large).
+
+**Message:** `PAID – NO FILES` + order ID + *Manual delivery needed!*
+
+**Operator action:** upload missing ZIP to `downloads/{file_id}.zip`, check Warehouse File Checker, or deliver manually to buyer.
+
+---
+
+#### 6. Expired order received payment (USDC)
+
+**When:** transfer matched but `expires_at` already passed (15-minute window).
+
+**Buyer also gets:** `Payment too late!` + order ID + contact support (USDC path).
+
+**Operator message:** `EXPIRED ORDER GOT PAID` + order ID + TXID + *Manual action needed!*
+
+**Operator action:** decide refund, honour late delivery, or contact buyer — not automated.
+
+---
+
+#### 7. Expired order received payment (ETH)
+
+**When:** same as above for ETH orders.
+
+**Buyer also gets:** `Payment too late!` (shorter text, no support line).
+
+**Operator message:** `EXPIRED ETH ORDER` + order ID + TXID + *Manual action needed!*
+
+---
+
+#### 8. Manual TXID — fraud attempt
+
+**When:** buyer submitted TXID but transaction `to` address is not the shop token contract.
+
+**Message:** `FRAUD ATTEMPT` + order ID + wrong `to` address.
+
+**Operator action:** review order audit trail; order marked `FRAUD_ATTEMPT`.
+
+---
+
+#### 9. Manual TXID — no transfer in receipt
+
+**When:** TXID valid on-chain but receipt has no ERC-20 `Transfer` log for the shop token.
+
+**Message:** `MANUAL VERIFY FAILED` + order ID + *No Transfer event found.*
+
+**Operator action:** ask buyer for correct TXID or investigate wrong token sent.
+
+---
+
+#### 10. Manual TXID — amount mismatch
+
+**When:** transfer found but `transferAmount !== order.amount_wei`.
+
+**Message:** `AMOUNT MISMATCH` + order ID + expected vs received token amounts.
+
+**Operator action:** partial payment or wrong order — manual resolution.
+
+---
+
+#### 11. File missing during delivery
+
+**When:** `deliverFiles()` — `downloads/{file_id}.zip` does not exist.
+
+**Message:** `FILE MISSING` + product name + expected path + order ID.
+
+**Operator action:** upload ZIP, re-run is not automatic — may need debug delivery or support contact.
+
+---
+
+#### 12. File integrity failure
+
+**When:** ZIP on disk SHA-256 does not match `file_registry` hash.
+
+**Message:** `INTEGRITY FAIL` + product name + path + order ID.
+
+**Operator action:** replace corrupted ZIP, re-register hash, investigate tampering.
+
+---
+
+#### 13. File too large for Telegram bot API
+
+**When:** ZIP &gt; ~49.5 MB (standard Bot API limit without local server).
+
+**Buyer also gets:** product name + file size + *admin will send it shortly*.
+
+**Operator message:** `LARGE FILE – Manual delivery needed` + name + size MB + buyer `chat_id` + order ID.
+
+**Operator action:** send file by alternate channel (local Bot API, cloud link, etc.).
+
+---
+
+#### 14. Debug force-paid (owner only)
+
+**When:** `POST /verify-payment` with `DEBUG_MODE=true` and owner session — **not production flow**.
+
+**Messages:** `DEBUG PAYMENT CONFIRMED` → delivery runs → `DELIVERY COMPLETE` or `PAID – NO FILES` with hint to put zips in `./downloads/`.
+
+**Operator action:** testing/support only.
+
+---
+
+### Operator alert summary table
+
+| # | Trigger | Header | Manual action? |
+|---|---------|--------|----------------|
+| 1 | Checkout | `NEW ORDER` | No |
+| 2 | USDC on-chain match | `PAYMENT DETECTED` | No |
+| 3 | ETH on-chain match | `ETH PAYMENT DETECTED` | No |
+| 4 | Delivery OK | `DELIVERED` | No |
+| 5 | Paid, 0 files sent | `PAID – NO FILES` | **Yes** |
+| 6 | Late USDC pay | `EXPIRED ORDER GOT PAID` | **Yes** |
+| 7 | Late ETH pay | `EXPIRED ETH ORDER` | **Yes** |
+| 8 | Bad manual TX target | `FRAUD ATTEMPT` | Review |
+| 9 | Manual TX no transfer | `MANUAL VERIFY FAILED` | **Yes** |
+| 10 | Manual TX wrong amount | `AMOUNT MISMATCH` | **Yes** |
+| 11 | ZIP missing | `FILE MISSING` | **Yes** |
+| 12 | Hash mismatch | `INTEGRITY FAIL` | **Yes** |
+| 13 | ZIP &gt; 50 MB | `LARGE FILE` | **Yes** |
+| 14 | Debug endpoint | `DEBUG PAYMENT CONFIRMED` | Test only |
+
+Events with **no Telegram message** (dashboard/logs only): unmatched transfer (no pending order), dust below threshold, buyer cancel, admin cancel, order expiry without payment.
+
+---
+
+### Buyer Telegram messages (Mini App orders)
+
+These go to the buyer's chat in the same bot conversation:
+
+| When | What the buyer sees |
+|------|---------------------|
+| Payment confirmed, delivery starting | `Payment Confirmed!` + order ID + *N files incoming...* |
+| Each file sent | Document attachment — filename from product name; caption with name, version, order ID |
+| All files sent | `Delivery Complete!` + count + order ID + thank you |
+| On-chain receipt failed | `Transaction Failed` + order ID |
+| Payment after expiry | `Payment too late!` + order ID |
+| File too large for bot | Product name + size + admin will send shortly |
+
+Buyer **does not** receive operator-style payment-detected messages — they see live status in the Mini App WebSocket UI instead (watching → confirming blocks → delivering).
+
+---
+
+### How alerts tie to the dashboard
+
+| Telegram event | Same moment in admin UI |
+|----------------|-------------------------|
+| New order | Orders row appears; `CREATED` in audit; log line ORDERS |
+| Payment detected | Status → Paying; Chain incoming table; `TRANSFER_DETECTED` log |
+| Confirming blocks | Chain tab *Active Confirmations* cards; buyer WS progress |
+| Delivered | Status → Done; stats revenue++; `DELIVERED` audit + log |
+| Incidents | Status badge + audit detail; ERROR/WARN log filter |
+
+Configure `ADMIN_CHAT_ID` to a private operator group or your personal Telegram user ID. Use the same bot token as the Mini App (`BOT_TOKEN`).
 
 ---
 
