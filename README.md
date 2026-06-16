@@ -108,6 +108,18 @@ Telegram is the primary channel; web is the same engine without the Mini App she
 
 ---
 
+## Example use cases
+
+### Sell a software ZIP inside your Telegram channel
+
+You run a crypto tools community on Telegram. You add `530.zip` to the server, create a product in WordPress (or Warehouse) with file ID `530` and price $29, post the bot deep link in the channel. A member opens the Mini App, adds the tool to cart, pays exact USDC amount shown on screen, watches block confirmations live, and receives the ZIP in the same chat **without you doing anything**. You only see a `DELIVERED` ping in operator Telegram and a new row in the admin Orders tab.
+
+### Run a drop with manual TXID support
+
+A buyer pays from an exchange that does not open your QR link. They paste the transaction hash in the payment screen. Status moves to **Manual verify** → **Paying** with real block counter → **Delivered**. If they pay 2 minutes after expiry, the system flags **EXPIRED ORDER GOT PAID** in your operator chat instead of silently crediting the wrong window.
+
+---
+
 ## Order lifecycle
 
 | Status | Meaning |
@@ -442,13 +454,11 @@ Use this to watch a sale happen **second by second** without tailing SSH logs.
 
 ### System tab
 
-Health and architecture overview.
+Session health at a glance.
 
 **Metric cards:** process uptime, memory usage, order counts by status, audit log volume, revenue-style rollups, status distribution chart.
 
-**Architecture flow diagram:** visual path Store → API → DuckDB → Watcher → Chain RPC → Bot → Buyer (conceptual onboarding aid).
-
-**Stack info panels:** backend runtime, blockchain config, bot, database — at a glance.
+**Stack info panels:** backend runtime, blockchain config, bot, database — quick reference for operators.
 
 ---
 
