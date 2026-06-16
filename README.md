@@ -1,51 +1,58 @@
 # Logic Encoder Crypto App Store
 
-Telegram-first software shop: browse Logic Encoder tools, pay with **USDC or ETH**, receive zip files automatically. Product copy lives in **WordPress**; checkout, chain matching, and delivery run in a dedicated **Node/Fastify** backend.
+Telegram-first software store for Logic Encoder tools: browse products in a Mini App, pay with **USDC or ETH**, and receive delivery files automatically after chain confirmation. WordPress handles catalogue content, while this backend owns payment detection, order state, and file delivery.
 
-Private source: [logicencoder/le-crypto-app-store](https://github.com/logicencoder/le-crypto-app-store). Catalogue plugin: [le-shop-plugin](https://github.com/logicencoder/le-shop-plugin) (private).
+## Tech stack
 
-## The problem it solves
+| Layer | Technologies |
+|-------|--------------|
+| Backend | Node.js + Fastify |
+| Persistence | DuckDB (`analytics.db`) |
+| Chain integration | ethers v6 (ERC20 + native ETH watchers) |
+| Delivery | Telegraf bot + tokenized web downloads |
+| Integrations | WordPress webhook + REST catalogue sync |
 
-Crypto-native buyers do not want card checkout or multi-page WooCommerce flows inside Telegram. Operators still want to edit app descriptions in WordPress without redeploying Node on every price change.
+## Telegram storefront and checkout flow
 
-This system splits roles: **WordPress = catalogue**, **Node service = money + files + bot**.
+The app runs as a Telegram Mini App with product cards, basket flow, payment instructions, and status polling in one mobile-first UI. Buyers can complete purchases without switching to card checkout plugins or leaving Telegram context.
 
-## Telegram Mini App storefront
+Each order gets a unique payment amount derived from session data. This allows deterministic matching of incoming transfers to one order even when many buyers pay to the same destination wallet.
 
-Full-screen shop UI embedded in Telegram — product cards (price, badge, version), basket, wallet payment flow, and order status polling. Mobile-first WebApp UX instead of forcing desktop checkout.
+## Payment confirmation and delivery pipeline
 
-## Unique payment amounts
+The backend watches on-chain transfers, moves orders through states (`PENDING` → `PAYING` → `PAID` → `DELIVERED`), and sends files after confirmation checks. Delivery guards prevent duplicate sends for the same order/file pair.
 
-Each checkout session generates a slightly unique ERC20 amount (derived from a session hash) so incoming transfers map to exactly one open order on a shared deposit address — no reliance on user-entered memo fields.
-
-## On-chain confirmation and delivery
-
-The service listens for USDC/USDT `Transfer` events and native ETH payments, waits for confirmations, then marks orders paid. After payment, the bot sends purchased zips to the buyer’s Telegram chat with duplicate-delivery guards. Orders in `PENDING` expire after ~15 minutes; late payments surface admin alerts instead of silent mismatches.
-
-## Web checkout path
-
-Buyers without a Telegram chat ID can receive **limited-use HTTPS download tokens** after payment — hybrid flows where marketing pages point to a web session instead of bot-only checkout.
+Late or ambiguous payments are surfaced to operators instead of silently failing. This is critical when traffic spikes and several sessions are active at once.
 
 ## WordPress catalogue sync
 
-When an operator publishes an application in WordPress, a webhook notifies the backend; admin can also bulk sync from REST. Marketing site and shop share one catalogue without duplicate data entry in Node.
+Store content is synchronized from WordPress through webhook events and optional REST import. That keeps marketing pages and checkout inventory aligned without editing product metadata in two systems.
 
-## Operator admin dashboard
+The model is simple: WordPress is catalogue authority; this service is order and payment authority.
 
-Browser UI at `/admin`: live orders, stats, warehouse editor, missing-file flags, wallet send tool, database inspection, runtime toggles, and WebSocket live feed. DuckDB stores basket lines and audit entries for funnel analysis.
+## Operator control plane
 
-## Order lifecycle
+An admin dashboard provides live operational visibility:
 
-```
-PENDING (~15 min TTL)
-   ├─▶ PAYING (tx seen, confirming)
-   ├─▶ PAID
-   │     └─▶ DELIVERED (Telegram files / download tokens)
-```
+- order queues and payment state
+- warehouse/file availability checks
+- stats and audit inspection
+- runtime toggles and diagnostics
 
-Stack: **Fastify 5**, **DuckDB** (`analytics.db`), **Telegraf**, **ethers v6**, merged ERC20 + ETH watchdog in one process.
+This screen is used during incidents (missing file, delayed payment, stuck delivery) to resolve issues without SSH-only workflows.
 
-See [REPOS.md](REPOS.md) for related repos.
+## Delivery channels
+
+After payment, users can receive files through:
+
+- Telegram bot document delivery
+- short-lived tokenized web download links (for non-bot flows)
+
+This hybrid path supports both pure Telegram storefront usage and web-assisted purchase journeys.
+
+Private code: [logicencoder/le-crypto-app-store](https://github.com/logicencoder/le-crypto-app-store)  
+Catalogue source: [le-shop-plugin](https://github.com/logicencoder/le-shop-plugin)  
+See [REPOS.md](REPOS.md).
 
 ---
 
