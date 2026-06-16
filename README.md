@@ -2,11 +2,13 @@
 
 **A real-time Telegram commerce platform — crypto in, files out, automatically — with a full operator control panel.**
 
-Logic Encoder Crypto App Store (LE CAS) is a purpose-built system for selling digital products **inside Telegram** and in the browser. Buyers browse a Mini App shop, pay **USDC or ETH on Ethereum**, watch payment progress **live on screen**, and receive ZIP files **without anyone clicking Send**. Operators see the same events in real time: new orders, chain confirmations, deliveries, and failures — in the **admin dashboard**, in the **live log terminal**, and in **Telegram operator alerts**.
+**Logic Encoder Crypto App Store** (LE CAS) — flagship realtime Telegram + crypto shop is a purpose-built system for selling digital products **inside Telegram** and in the browser. Buyers browse a Mini App shop, pay **USDC or ETH on Ethereum**, watch payment progress **live on screen**, and receive ZIP files **without anyone clicking Send**. Operators see the same events in real time: new orders, chain confirmations, deliveries, and failures — in the **admin dashboard**, in the **live log terminal**, and in **Telegram operator alerts**.
 
 No payment gateway. No manual inbox. One automated loop: **shop → chain → confirm → deliver → notify**.
 
 **Made by [Logic Encoder](https://logicencoder.com)**
+
+**Product name:** Logic Encoder Crypto App Store · **LE CAS** · private repo `le-crypto-app-store`
 
 ---
 
@@ -96,6 +98,115 @@ On `DELIVERED`:
 
 ---
 
+## Feature examples — two per capability
+
+### Telegram Mini App — catalogue & cart
+
+1. Member opens bot from channel post — sees `v2.1` badge on beta tool, adds two items, cart shows $49 total before checkout.
+2. Deep link `?startapp=712` opens shop directly on one product — buyer never browses full catalogue.
+
+### Checkout — USDC payment + QR
+
+1. Buyer scans EIP-681 QR in Trust Wallet — exact USDC amount pre-filled; no manual decimal typing.
+2. Three buyers checkout same minute — each gets different wei amount; watcher matches all three without collision.
+
+### Checkout — ETH payment
+
+1. Shop enables ETH — buyer sees live ETH/USD conversion and sends native ETH; UI shows wei-matched order.
+2. Testnet demo: operator sets ETH rate in runtime settings — buyers pay small ETH for $1 test product.
+
+### MetaMask (browser)
+
+1. Web buyer connects MetaMask — network switch prompt then `transfer()`; TXID forwarded to backend automatically.
+2. Wallet rejects wrong chain — buyer fixes network and retries without creating a second order.
+
+### Manual TXID
+
+1. Buyer paid from exchange — pastes `0xabc…` hash; status **Manual verify** then **Paying** with block progress.
+2. Wrong hash length rejected at API — buyer corrects before order expires.
+
+### Live WebSocket buyer status
+
+1. Buyer watches **Block 4 of 12** update in Mini App — same moment operator sees Active Confirmations card.
+2. Payment fails on-chain — buyer UI shows **Payment failed** immediately; no stale “pending” screen.
+
+### Auto-delivery — Telegram
+
+1. Two ZIPs in cart — bot sends two documents sequentially; idempotency prevents duplicate on retry.
+2. Large file near limit — buyer gets “admin will send shortly” + operator **LARGE FILE** Telegram alert.
+
+### Auto-delivery — web download tokens
+
+1. Browser buyer hits **Delivered** — download buttons appear only in original tab with `web_session`.
+2. Token max uses = 3 — fourth click returns 403; buyer must not share link publicly.
+
+### Buyer cancel & expiry
+
+1. Buyer cancels at 14:00 — order **CANCELLED**; payment at 14:16 triggers **EXPIRED ORDER GOT PAID** to operator.
+2. Countdown hits zero while buyer still on payment screen — status **EXPIRED**; late TX flagged not auto-delivered.
+
+### Browser storefront
+
+1. Embed shop URL on marketing site — same cart/checkout without Telegram account.
+2. Buyer bookmarks order page — `web_session` in localStorage restores status on return visit.
+
+### Operator Telegram — new order
+
+1. Checkout at 03:00 — phone gets `NEW ORDER` with items, USD, USDC amount, device screen size.
+2. Multi-item order lists each file ID — you verify `530.zip` exists before payment lands.
+
+### Operator Telegram — payment & delivered
+
+1. `PAYMENT DETECTED` then 12 blocks later `DELIVERED` — you never touch dashboard during sleep.
+2. `PAID – NO FILES` — you upload missing ZIP and handle support; alert told you file ID.
+
+### Admin — Orders tab
+
+1. Filter **Paying** — one row; expand audit — see TXID and block events with Etherscan links.
+2. **Admin cancel** fraudulent pending order — buyer cannot pay into a dead session.
+
+### Admin — Warehouse
+
+1. Toggle **WordPress** source — Mini App catalogue refreshes from WP without redeploy.
+2. **Import from WP** then **Export products.json** — strict server price validation enabled for next checkout.
+
+### Admin — Wallet
+
+1. Incoming table shows today’s USDC total vs **Total Received** card — reconcile with chain explorer.
+2. Send 50 USDC to cold wallet from dashboard — outgoing row logged with note `monthly sweep`.
+
+### Admin — Logs terminal
+
+1. Filter **WATCHDOG** during sale — see transfer match line without SSH.
+2. Filter **ERROR** after incident — one pane for delivery crash + amount mismatch.
+
+### Admin — Chain tab
+
+1. Active Confirmations card for order `A1B2` — same block numbers buyer sees in Mini App.
+2. Hide block spam — log shows only payment events during busy network hour.
+
+### Admin — DB Browser
+
+1. `SELECT * FROM orders WHERE status='DELIVERED' ORDER BY ts DESC LIMIT 20` — support query in 5 s.
+2. Describe `deliveries` table — confirm idempotency rows for duplicate-send investigation.
+
+### Admin — Settings & RBAC
+
+1. Create **viewer** account for accountant — sees orders/revenue, cannot send wallet or edit warehouse.
+2. Runtime settings: switch to ETH-only checkout for one hour — save without server restart.
+
+### LE Shop + WordPress sync
+
+1. Publish new `application` in wp-admin — webhook fires; Telegram shop shows new card on next open.
+2. LE Shop **Fetch Live** shows ✘ MISSING for file 530 — you upload ZIP before announcing sale.
+
+### Security — sessions & IDOR
+
+1. Attacker guesses order ID — `order-status` returns 403 without valid `web_session`.
+2. Login lockout after 5 fails — 429 for 15 min; legitimate operator waits then succeeds.
+
+---
+
 ## Browser storefront
 
 The same backend powers a standalone web shop (`le_crypto_app_store_v2.html`):
@@ -105,18 +216,6 @@ The same backend powers a standalone web shop (`le_crypto_app_store_v2.html`):
 - MetaMask, QR, and manual TXID flows behave the same as Telegram
 
 Telegram is the primary channel; web is the same engine without the Mini App shell.
-
----
-
-## Example use cases
-
-### Sell a software ZIP inside your Telegram channel
-
-You run a crypto tools community on Telegram. You add `530.zip` to the server, create a product in WordPress (or Warehouse) with file ID `530` and price $29, post the bot deep link in the channel. A member opens the Mini App, adds the tool to cart, pays exact USDC amount shown on screen, watches block confirmations live, and receives the ZIP in the same chat **without you doing anything**. You only see a `DELIVERED` ping in operator Telegram and a new row in the admin Orders tab.
-
-### Run a drop with manual TXID support
-
-A buyer pays from an exchange that does not open your QR link. They paste the transaction hash in the payment screen. Status moves to **Manual verify** → **Paying** with real block counter → **Delivered**. If they pay 2 minutes after expiry, the system flags **EXPIRED ORDER GOT PAID** in your operator chat instead of silently crediting the wrong window.
 
 ---
 
