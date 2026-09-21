@@ -12,7 +12,23 @@ No payment gateway. No manual inbox. One automated loop: **shop → chain → co
 
 ---
 
-## What the platform does
+## Tech stack
+
+| Layer | Technologies |
+|-------|----------------|
+| Realtime commerce | Telegram Mini App + buyer WebSocket status hub |
+| Backend | Node.js, Fastify |
+| Database | DuckDB — orders, audit, warehouse, sessions, deliveries, file registry |
+| Chain | ethers v6, ERC-20 Transfer logs + native ETH, configurable confirmations |
+| Delivery | Telegraf bot (`delivery.js`) + tokenized web downloads |
+| Storefront | HTML/JS, MetaMask, EIP-681 QR |
+| Admin UI | Single-page dashboard, role-aware, mobile bottom nav |
+| Catalogue sync | WordPress REST + webhook (LE Shop plugin) |
+| Operator alerts | Telegraf → admin Telegram chat |
+
+---
+
+## Platform components
 
 | Layer | Role |
 |-------|------|
@@ -98,7 +114,7 @@ On `DELIVERED`:
 
 ---
 
-## Feature examples — two per capability
+## Operator workflows
 
 ### Telegram Mini App — catalogue & cart
 
@@ -649,23 +665,6 @@ WordPress is the **editorial layer** for many deployments — product copy, thum
 
 See **[le-shop-plugin-overview](https://github.com/logicencoder/le-shop-plugin-overview)** for the WordPress side — dashboard, items/warehouse comparison, settings, and operator workflow.
 
----
-
-## Tech stack
-
-| Layer | Technologies |
-|-------|----------------|
-| Realtime commerce | Telegram Mini App + buyer WebSocket status hub |
-| Backend | Node.js, Fastify |
-| Database | DuckDB — orders, audit, warehouse, sessions, deliveries, file registry |
-| Chain | ethers v6, ERC-20 Transfer logs + native ETH, configurable confirmations |
-| Delivery | Telegraf bot (`delivery.js`) + tokenized web downloads |
-| Storefront | HTML/JS, MetaMask, EIP-681 QR |
-| Admin UI | Single-page dashboard, role-aware, mobile bottom nav |
-| Catalogue sync | WordPress REST + webhook (LE Shop plugin) |
-| Operator alerts | Telegraf → admin Telegram chat |
-
----
 
 ## Related repositories
 
