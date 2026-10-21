@@ -4,7 +4,11 @@
 
 Selling digital products involves more than collecting a payment. Someone has to connect the purchase to the right files, keep the buyer informed and know whether delivery completed. Logic Encoder Crypto App Store brings that work into one purchase flow inside Telegram, with a browser storefront and a shared operator workspace.
 
-It was built around the creator's preference for having related work in one place instead of moving between separate tools. Buyers can choose an application, pay and receive their files in the same conversation. Operators can follow the sale, investigate a problem and manage the catalogue from one dashboard, reducing routine checking and manual handoffs.
+The project began because its creator could not find an existing solution that fit the intended shopping and delivery experience. Building a dedicated store made it possible to bring product selection, payment progress and file delivery together, with one dashboard for managing the sale and handling exceptions.
+
+It also served as a practical testbed for implementing and evaluating different security protections in a working application. This made security an explicit part of the project's purpose alongside the shopping experience, with attention to buyer access, administrative permissions and protected delivery.
+
+Buyers can choose an application, pay and receive their files in the same conversation. Operators can follow the sale, investigate a problem and manage the catalogue from one dashboard, reducing routine checking and manual handoffs.
 
 Open the [Telegram store](https://t.me/v52cfgr5452dbot/cryptoshop) or [browser storefront](https://logicencoder.com/app/).
 
