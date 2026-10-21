@@ -1,155 +1,138 @@
 # Logic Encoder Crypto App Store
 
-![Telegram catalogue, cart, payment progress and completed delivery](assets/Le-CAS-Admin9.png)
+![Product catalogue, basket, payment progress and completed delivery](assets/Le-CAS-Admin9.png)
 
-Logic Encoder Crypto App Store sells digital products through a Telegram Mini App and browser storefront. Buyers browse a catalogue, build a basket, pay in cryptocurrency and receive purchased files automatically. A live operator dashboard follows each purchase from creation through blockchain confirmation to delivery. Open the [Telegram store](https://t.me/v52cfgr5452dbot/cryptoshop) or [browser storefront](https://logicencoder.com/app/).
+Selling digital products involves more than collecting a payment. Someone has to connect the purchase to the right files, keep the buyer informed and know whether delivery completed. Logic Encoder Crypto App Store brings that work into one purchase flow inside Telegram, with a browser storefront and a shared operator workspace.
+
+It was built around the creator's preference for having related work in one place instead of moving between separate tools. Buyers can choose an application, pay and receive their files in the same conversation. Operators can follow the sale, investigate a problem and manage the catalogue from one dashboard, reducing routine checking and manual handoffs.
+
+Open the [Telegram store](https://t.me/v52cfgr5452dbot/cryptoshop) or [browser storefront](https://logicencoder.com/app/).
 
 ## Tech stack
 
 | Layer | Technologies |
 |---|---|
-| Server | JavaScript, Node.js, Fastify 5 |
-| Interfaces | HTML, CSS, JavaScript, responsive single-page dashboards |
-| Live updates | WebSockets and authenticated HTTP status recovery |
-| Blockchain | Ethereum, Sepolia, ethers v6, ERC-20 logs, JSON-RPC |
-| Provider resilience | PublicNode, Alchemy, Infura, configurable HTTP and WebSocket endpoints |
-| Telegram | Telegram Mini Apps, Telegraf, document delivery |
-| Persistence | DuckDB |
-| Catalogue publishing | WordPress REST API and authenticated webhooks |
-| File verification | SHA-256 registration and server-side availability checks |
-| Regression checks | Node.js test runner, Playwright Chromium, isolated Anvil chain |
+| Application | JavaScript, Node.js, Fastify |
+| Interfaces | HTML, CSS, JavaScript |
+| Data | DuckDB |
+| Telegram | Telegram Mini Apps, Telegraf |
+| Payments | Ethereum, USDC, ETH, ethers |
+| Live updates | WebSockets |
+| Catalogue integration | WordPress |
 
-## Telegram catalogue and basket
+## Browse and buy inside Telegram
 
-Product cards bring together the application image, name, description, version, price and optional status badge. Buyers use **Add** to assemble a basket, review the total, remove individual items and return to browsing before proceeding to payment.
+The storefront presents applications with images, descriptions, prices, versions and optional badges. Buyers can compare the available products and build a basket without leaving Telegram.
 
-Product deep links can open a selected item from an announcement. Operators copy these entry points from the warehouse, making the same catalogue useful for both browsing and product-specific Telegram posts. The browser storefront offers the same catalogue and order flow outside the Telegram shell.
+The cart brings selected items and their total together before checkout. Products can be removed individually, making it easy to adjust the purchase before proceeding. Direct product links also let someone arrive at a particular application from an announcement.
 
-The catalogue and operator order detail can be inspected together. Buyers choose products in the Mini App while the operator follows basket contents, the transaction reference and the delivery audit.
+A regular browser provides another way to use the storefront. The product selection and purchase journey remain familiar across the two entry points.
 
-![Telegram product catalogue beside the operator order detail](assets/Le-CAS-Admin6.png)
+![Telegram catalogue alongside the operator's order workspace](assets/Le-CAS-Admin6.png)
 
-## Checkout and live payment progress
+## Clear instructions from checkout to confirmation
 
-**Proceed to Payment** creates an order and opens its payment screen. The buyer sees the order ID, purchased items, exact amount, destination wallet and expiry countdown. Copy controls help transfer the amount and address into a wallet; QR and wallet integration controls support payment without manually retyping the destination.
+The payment screen gives buyers the information needed to complete the purchase: an order reference, selected items, exact amount, destination address and remaining payment time. Copy controls and supported wallet options reduce retyping.
 
-Configured payment modes include USDC and native ETH. The screen identifies the selected network, including Sepolia in test mode. A manual transaction-hash control lets a buyer identify a payment sent through another wallet or service.
+Configured payment modes include USDC and ETH. The selected network is shown clearly, including test-network identification when applicable. Buyers who have already sent a payment can submit its transaction reference for verification.
 
-Payment state progresses from watching for a transaction to detection, confirmations and delivery. Confirmation progress comes from observed blockchain blocks. WebSocket messages carry live updates, while authenticated HTTP recovery reconciles the current order after missed events or a connection interruption.
+Progress stays visible as the purchase moves from waiting for payment through detection and confirmation to delivery. Buyers can see that the transaction has been noticed and understand when the store is still waiting for confirmation, reducing uncertainty and unnecessary support messages.
 
-- Checkout validates product information and file availability against the selected catalogue.
-- The countdown exposes the order's payment window.
-- Buyer cancellation is available while the order remains pending.
-- Detection starts confirmation handling before delivery.
-- Ambiguous payment matches request verification rather than selecting an arbitrary order.
+## Files delivered into the conversation
 
-## Automatic file delivery
+After successful payment verification, the bot sends the purchased files directly to the buyer's Telegram chat. Order messages connect the documents to the purchase, and the storefront displays **Files Delivered!** with a route back to shopping.
 
-The bot sends purchased documents directly into the buyer's Telegram conversation after payment verification. Messages identify the order and delivery outcome. The Mini App switches to **Files Delivered!** and offers **Back to Store**, while the operator sees the corresponding completed order.
+Browser purchases receive download links through their purchase session. Both delivery paths give the buyer a clear completion step rather than leaving them to request the files manually.
 
-Browser purchases receive expiring download links associated with their buyer session. Individual file delivery records let retries account for work already handled. Missing, oversized or integrity-invalid files follow explicit error handling instead of being silently counted as a complete purchase.
+Delivery issues remain visible to the operator when intervention is needed. The completed purchase below brings the buyer's confirmation, received document and order history together.
 
-The combined view below connects buyer acknowledgement, document receipt and the stored audit trail. An operator can verify that the same order completed across the chat, storefront and dashboard.
+![Completed purchase with Telegram delivery and order history](assets/Le-CAS-Admin10.png)
 
-![Completed purchase, Telegram document and delivery audit](assets/Le-CAS-Admin10.png)
+## Follow every order from one workspace
 
-## Orders and audit trails
+The **Orders** area gives operators a live view of the sales queue. Summary figures and status filters make it easier to distinguish purchases waiting for payment, transactions being confirmed, completed deliveries and orders needing attention.
 
-The **Orders** area combines summary figures, status filters and a paginated purchase queue. Rows show the buyer, basket, value, status and transaction reference. Filter chips isolate pending payments, orders being confirmed, completed deliveries and purchases requiring attention.
+Opening an order reveals the purchased products, payment information and a chronological history. Transaction links provide a route to check the payment externally, while eligible cancellation controls support intervention when necessary.
 
-Expanding a row reveals order information, purchased product details and timestamped audit events. Creation, payment detection, payment acceptance and delivery outcomes remain associated with the purchase. Explorer links allow the operator to inspect the underlying transfer, while permitted cancellation actions support eligible interventions.
+The value is continuity: the operator can answer “what happened to this purchase?” without reconstructing the story from a chat, a wallet and a separate delivery record.
 
-Live patches update order state and dashboard figures while the panel remains open. Status colours distinguish waiting, confirming, paid, delivered and unsuccessful outcomes; the expanded detail explains the history behind each badge.
+![Order queue, filters and expanded purchase details](assets/Le-CAS-Admin7.png)
 
-![Orders dashboard with expanded details and history](assets/Le-CAS-Admin7.png)
+## Keep products ready for sale
 
-## Warehouse and deliverable management
+The **Warehouse** brings catalogue information and deliverable availability together. Add and edit products, maintain prices and versions, manage availability and review the files associated with each application.
 
-The **Warehouse** controls the product catalogue and its files. Operators select WordPress or the local warehouse as the source, import products, export catalogue metadata, add applications and edit existing entries.
+File checks help identify missing or problematic deliverables before a buyer reaches checkout. Catalogue import and export support maintenance, while copyable shop and product links simplify sharing new releases.
 
-Product fields cover name, price, version, file reference, status, requirements, badge and presentation metadata. Availability and file size appear alongside the catalogue row, making it easier to verify a deliverable before publishing. Removing a product entry does not require deleting its ZIP.
+Products can be maintained locally or through the WordPress catalogue connection. This gives the operator a choice of editing workflow while keeping sale readiness visible in the store's own workspace.
 
-File registry and checker panels compare registered files with disk availability. SHA-256 and size information support integrity checks, and shop/item links provide copyable Telegram entry points. A typical publishing workflow is to prepare the file, verify its registration, publish or import the product, and check availability before announcing it.
+![Product warehouse and deliverable checks](assets/Le-CAS-Admin1.png)
 
-![Warehouse product list and file verification panels](assets/Le-CAS-Admin1.png)
+## Reconcile payments without losing the order context
 
-## Wallet and reconciliation
+The **Wallet** area combines balances with incoming and outgoing payment history. Incoming records retain their order references and statuses, making it easier to connect received funds with the corresponding purchase.
 
-The **Wallet** area places balances and payment history together. Summary cards show the configured wallet, native asset balance, token balance and received value. Incoming payments retain order references, statuses and explorer links for reconciliation.
+Transaction links support external checks when a payment needs investigation. Outgoing history records transfers and notes, and authorised wallet controls support sending when configured.
 
-Incoming and outgoing records have separate paginated lists. Outgoing transfers include recipient, amount, note and transaction reference. When signing is configured, an authorised operator can enter a destination and amount in the send form.
+Keeping these details beside the order queue reduces the effort involved in checking whether a purchase was paid and how its payment was handled.
 
-Wallet actions are permission controlled. The payment history gives support and accounting work a direct connection between an order and its on-chain transfer.
+![Balances and incoming and outgoing payment history](assets/Le-CAS-Admin2.png)
 
-![Wallet balances, incoming payments and outgoing transfers](assets/Le-CAS-Admin2.png)
+## See confirmation progress as it happens
 
-## Blockchain watcher
+The **Chain** workspace gives operators a focused view of payment monitoring. Network information, watcher status and the latest observed block provide context, while active confirmation cards show purchases still being confirmed.
 
-The **Chain** area shows the payment watcher's network, current block, availability, configured token and receiving wallet. Active confirmation cards expose the detected block, target block and progress of purchases awaiting confirmation.
+This helps distinguish an ordinary wait for confirmations from a connection issue. Incoming and outgoing payment lists keep the broader payment activity available without obscuring the current purchase.
 
-Incoming payment records link activity back to the sales queue. Outgoing history adds the corresponding treasury view. The confirmation card helps an operator distinguish normal waiting for blocks from a watcher connection problem.
+Provider-priority settings offer control over which configured connection services the shop prefers. Operators can adjust that preference from the dashboard as their needs change.
 
-WebSocket subscriptions supply new blocks and relevant token transfer events. HTTP recovery scans overlap persisted checkpoints to recover missed activity. Configurable provider priority, chain identity checks and fallback handling support continuity when an endpoint becomes unavailable.
+![Payment monitoring and active confirmation progress](assets/Le-CAS-Admin8.png)
 
-![Chain watcher with active confirmation progress](assets/Le-CAS-Admin8.png)
+## Investigate issues with live logs
 
-## Live logs
+The **Logs** workspace collects operational messages in a searchable, filterable view. Focus on orders, payment monitoring or errors to follow the part of the purchase journey that needs attention.
 
-The **Logs** area offers a terminal-style stream within the dashboard. Filters separate order activity, backend events, watcher output, errors and block events, helping the operator follow a purchase or investigate a delivery failure.
+Pause and autoscroll controls support both live observation and careful reading. Display and privacy preferences make the workspace easier to use during support or screen sharing.
 
-Autoscroll and buffer controls support live observation and incident review. Preferences control retained lines and block-event visibility. IP masking can be configured separately for terminal output and surrounding panels.
+Logs complement the order history: the purchase detail explains one customer's journey, while the live view helps investigate the surrounding activity.
 
-The terminal provides runtime context across the shop; an order's structured audit supplies the history of a specific purchase.
+## Check the shop's overall health
 
-## System health
+The **System** area brings runtime information, resource usage and order distribution together. It offers a quick way to see whether the shop is active and whether purchases are accumulating in a particular state.
 
-The **System** area brings runtime health and order distribution together. Cards expose uptime, process memory, order counts, audit volume and sales totals. The status distribution display helps identify a build-up of purchases in waiting, confirming or unsuccessful states.
+From there, the operator can move into the relevant order, payment view or log stream. The persistent connection and block indicators keep useful health signals visible while working elsewhere in the dashboard.
 
-Runtime and stack panels provide an operational configuration summary. The persistent header also shows WebSocket connectivity and the current block as the operator moves between tabs.
+![System health and order distribution](assets/Le-CAS-Admin3.png)
 
-Use the overview to establish whether the application is running and processing purchases, then move into Orders, Chain or Logs for the specific issue.
+## Inspect records when support needs more detail
 
-![System health, runtime metrics and order distribution](assets/Le-CAS-Admin3.png)
+The **DB** workspace gives authorised operators a deeper inspection tool when the usual order panels do not answer a question. Record browsing, query controls and paginated results support investigation of a purchase or delivery.
 
-## Database inspection
+Keeping this workspace inside the dashboard shortens the path between the customer's order and the additional information needed to understand it.
 
-The **DB** workspace supports authorised inspection of application records. Table selectors and quick-query buttons help locate order, audit and delivery information; the SQL input supports more specific support questions.
+![Record inspection workspace](assets/Le-CAS-Admin4.png)
 
-Results appear in a paginated grid with configurable display size. The query API applies role checks and a statement-type restriction. Normal order and catalogue changes use the dedicated application controls.
+## Configure the shop and its workspace
 
-This screen provides the stored detail behind a dashboard status or transaction reference, alongside the other operational tools.
+**Settings** covers both the shopping service and the operator's preferred dashboard behaviour. Adjust accepted payment modes, confirmation requirements, basket and download limits, and configured provider priority as appropriate for the shop.
 
-![Database query workspace and paginated results](assets/Le-CAS-Admin4.png)
+Display preferences cover log behaviour, pagination, visual density and warehouse panels. Privacy controls help during demonstrations, while account management lets the owner maintain access and roles for other operators.
 
-## Settings and access management
+The result is a workspace that can support routine sales and occasional support work without repeatedly reconfiguring the tools around it.
 
-**Settings** separates local dashboard preferences from backend configuration. Display controls include log retention, autoscroll, block-event visibility, order fetch limits, pagination, row tint and the initially expanded warehouse panels.
+![Shop settings, display preferences and account controls](assets/Le-CAS-Admin5.png)
 
-Privacy controls mask IP addresses in panels and terminal output. Backend controls configure accepted payment modes, confirmation requirements, basket limits, download use limits and the bot link.
+## Publish through WordPress when it fits the workflow
 
-**RPC priority** allows authorised operators to reorder available named providers and apply the choice through **Save Runtime Settings**. The saved order updates RPC connections without restarting the service. Explicit endpoint configuration is indicated separately.
+The [LE Shop companion](https://github.com/logicencoder/le-shop-plugin-overview) lets product editing remain in WordPress. Maintain application descriptions, images, versions and prices using a familiar publishing workflow, then make those products available in the store.
 
-Owner-managed accounts support roles, account creation, disabling access and password resets. Session controls provide logout; actions elsewhere in the dashboard follow the authenticated account's permissions.
+The local warehouse remains an alternative for operators who prefer to manage products directly in the dashboard. Both approaches keep the buying and delivery experience centred on the store.
 
-The capture illustrates the display, privacy, backend and account-management areas. Provider controls depend on the deployed configuration.
+## Spend less time coordinating a sale
 
-![Display preferences, backend configuration and administrator accounts](assets/Le-CAS-Admin5.png)
+The buyer journey connects browsing, checkout, payment progress and file receipt. The operator journey connects catalogue readiness, order tracking, payment checks and delivery support. Bringing those tasks together reduces the number of places that need to be checked during a sale.
 
-## WordPress catalogue companion
-
-The [LE Shop plugin](https://github.com/logicencoder/le-shop-plugin-overview) supplies an editorial workflow for application descriptions, images, versions, prices and file references. Publication changes notify the store, which reads current canonical information before updating its catalogue projection.
-
-The warehouse source selector chooses the publishing model. WordPress mode follows the editorial catalogue; local mode follows products maintained in the operator panel. Checkout validates against the selected source and reports source failures rather than trusting buyer-supplied prices.
-
-Product editing can therefore remain in WordPress while the store handles order state, blockchain payment checks, buyer updates and digital delivery.
-
-## Buyer ownership and operational safeguards
-
-Status access, cancellation and transaction submission require proof of buyer ownership. The Mini App authenticates its WebSocket order subscription after connecting, and status recovery respects the same ownership boundary. Telegram identity validation and buyer session capabilities support access to the appropriate order.
-
-The server owns order state. Conditional updates protect competing payment claims, and receipt checks validate payments before delivery. The interface ignores obsolete recovery replies after accepting newer live state.
-
-Operator accounts use password hashing, expiring sessions and permission checks. Catalogue webhooks have a separate authentication boundary. File registration, per-file delivery tracking and limited browser download links provide controls around fulfilment.
+Automatic delivery handles the routine completion step. Clear order history and visible issues make exceptions easier to investigate. The practical benefit is less manual coordination and a more coherent experience for both the person buying and the person running the shop.
 
 ---
 
