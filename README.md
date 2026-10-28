@@ -12,6 +12,9 @@ Buyers can choose an application, pay and receive their files in the same conver
 
 Open the [Telegram store](https://t.me/v52cfgr5452dbot/cryptoshop) or [browser storefront](https://logicencoder.com/app/).
 
+
+A sale is easier to support when the buyer's progress and the operator's records tell the same story. The shop keeps product readiness, payment progress and delivery visible so an interrupted purchase can be reviewed in its original context.
+
 ## Tech stack
 
 | Layer | Technologies |
