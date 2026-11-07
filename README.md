@@ -1,6 +1,6 @@
 # Logic Encoder Crypto App Store
 
-![Product catalogue, basket, payment progress and completed delivery](assets/Le-CAS-Admin9.png)
+![Product catalogue, basket, payment progress and completed delivery](assets/crypto-app-store-catalogue-basket-payment-delivery.png)
 
 Selling digital products involves more than collecting a payment. Someone has to connect the purchase to the right files, keep the buyer informed and know whether delivery completed. Logic Encoder Crypto App Store brings that work into one purchase flow inside Telegram, with a browser storefront and a shared operator workspace.
 
@@ -35,7 +35,7 @@ The cart brings selected items and their total together before checkout. Product
 
 A regular browser provides another way to use the storefront. The product selection and purchase journey remain familiar across the two entry points.
 
-![Telegram catalogue alongside the operator's order workspace](assets/Le-CAS-Admin6.png)
+![Telegram catalogue alongside the operator's order workspace](assets/crypto-app-store-telegram-catalogue-order-workspace.png)
 
 ## Clear instructions from checkout to confirmation
 
@@ -53,7 +53,7 @@ Browser purchases receive download links through their purchase session. Both de
 
 Delivery issues remain visible to the operator when intervention is needed. The completed purchase below brings the buyer's confirmation, received document and order history together.
 
-![Completed purchase with Telegram delivery and order history](assets/Le-CAS-Admin10.png)
+![Completed purchase with Telegram delivery and order history](assets/crypto-app-store-completed-purchase-delivery-history.png)
 
 ## Follow every order from one workspace
 
@@ -63,7 +63,7 @@ Opening an order reveals the purchased products, payment information and a chron
 
 The value is continuity: the operator can answer “what happened to this purchase?” without reconstructing the story from a chat, a wallet and a separate delivery record.
 
-![Order queue, filters and expanded purchase details](assets/Le-CAS-Admin7.png)
+![Order queue, filters and expanded purchase details](assets/crypto-app-store-order-queue-filters-details.png)
 
 ## Keep products ready for sale
 
@@ -73,7 +73,7 @@ File checks help identify missing or problematic deliverables before a buyer rea
 
 Products can be maintained locally or through the WordPress catalogue connection. This gives the operator a choice of editing workflow while keeping sale readiness visible in the store's own workspace.
 
-![Product warehouse and deliverable checks](assets/Le-CAS-Admin1.png)
+![Product warehouse and deliverable checks](assets/crypto-app-store-product-warehouse-deliverable-checks.png)
 
 ## Reconcile payments without losing the order context
 
@@ -83,7 +83,7 @@ Transaction links support external checks when a payment needs investigation. Ou
 
 Keeping these details beside the order queue reduces the effort involved in checking whether a purchase was paid and how its payment was handled.
 
-![Balances and incoming and outgoing payment history](assets/Le-CAS-Admin2.png)
+![Balances and incoming and outgoing payment history](assets/crypto-app-store-balances-payment-history.png)
 
 ## See confirmation progress as it happens
 
@@ -93,7 +93,7 @@ This helps distinguish an ordinary wait for confirmations from a connection issu
 
 Provider-priority settings offer control over which configured connection services the shop prefers. Operators can adjust that preference from the dashboard as their needs change.
 
-![Payment monitoring and active confirmation progress](assets/Le-CAS-Admin8.png)
+![Payment monitoring and active confirmation progress](assets/crypto-app-store-payment-monitoring-confirmations.png)
 
 ## Investigate issues with live logs
 
@@ -109,7 +109,7 @@ The **System** area brings runtime information, resource usage and order distrib
 
 From there, the operator can move into the relevant order, payment view or log stream. The persistent connection and block indicators keep useful health signals visible while working elsewhere in the dashboard.
 
-![System health and order distribution](assets/Le-CAS-Admin3.png)
+![System health and order distribution](assets/crypto-app-store-system-health-order-distribution.png)
 
 ## Inspect records when support needs more detail
 
@@ -117,7 +117,7 @@ The **DB** workspace gives authorised operators a deeper inspection tool when th
 
 Keeping this workspace inside the dashboard shortens the path between the customer's order and the additional information needed to understand it.
 
-![Record inspection workspace](assets/Le-CAS-Admin4.png)
+![Record inspection workspace](assets/crypto-app-store-record-inspection.png)
 
 ## Configure the shop and its workspace
 
@@ -127,7 +127,7 @@ Display preferences cover log behaviour, pagination, visual density and warehous
 
 The result is a workspace that can support routine sales and occasional support work without repeatedly reconfiguring the tools around it.
 
-![Shop settings, display preferences and account controls](assets/Le-CAS-Admin5.png)
+![Shop settings, display preferences and account controls](assets/crypto-app-store-shop-settings-preferences.png)
 
 ## Publish through WordPress when it fits the workflow
 
